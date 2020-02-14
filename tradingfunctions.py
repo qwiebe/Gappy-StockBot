@@ -2,7 +2,13 @@ import requests
 from authorization import headers, access_token
 from config import account_num
 from colorRef import colors
+import math
+############################################################
+#   ToDo: - create function for simulation trading         #
+#                                                          #
+############################################################
 
+# -------------------- GETTING DATA --------------------
 # gets the candles for a particular ticker
 def candles(ticker = 'TQQQ', periodType = 'day', period = '1', frequencyType = 'minute', frequency = '1', extHours = 'true'):
         
@@ -24,10 +30,19 @@ def currentPrices(tickers):
 
     payload = {'symbol': tickers}
 
-    prices = requests.get(url, headers = headers, data = payload)
+    prices = requests.get(url, headers = headers, params = payload).json()
 
     return prices
+# gets the current price for a single ticker
+def currentPrice(ticker):
+    url = r'https://api.tdameritrade.com/v1/marketdata/{}/quotes'.format(ticker)
 
+    price = requests.get(url, headers = headers).json()
+
+    return price[ticker]
+
+
+# -------------------- PLACING ORDERS --------------------
 # place various types of orders
 def placeOrder(ticker, price, quantity, action, accountId): # action = 'BUY', 'SELL', 'STOP'
     url = r'https://api.tdameritrade.com/v1/accounts/{}/orders'.format(accountId)
@@ -78,7 +93,15 @@ def placeOrder(ticker, price, quantity, action, accountId): # action = 'BUY', 'S
     else:
         print(order.status_code)
         print(order.json())
-    
+    return order.status_code
+
+# simulation order... still needs to be finished
+def fakeOrder(ticker, price, quantity, action):
+    if action == 'BUY' or action == 'SELL':
+        print('Something')
+    elif action == 'STOP':
+        print('Something Else')
+
 # cancel order
 def cancelOrder(orderId, accountId):
     url = r'https://api.tdameritrade.com/v1/accounts/{}/orders/{}'.format(accountId, orderId)
@@ -86,3 +109,46 @@ def cancelOrder(orderId, accountId):
     cancel = requests.delete(url, headers = headers)
 
     print(cancel.status_code)
+
+# DETERMINE WHAT QUANTITY TO PURCHASE
+# Obtain account data
+def acctData(accountId):
+    url = r'https://api.tdameritrade.com/v1/accounts/{}'.format(accountId)
+
+    payload = {'fields': 'positions,orders'}
+
+    acct_data = requests.get(url, headers = headers, data = payload).json()
+
+    return acct_data
+
+# Determine quantity and price to purchase at
+def qtyPurchase(accountId, ticker, purchase_counter):
+    acct_data = acctData(accountId)
+    # This will need to change if other accounts are added
+    my_acct = acct_data['securitiesAccount']
+
+    round_trips = my_acct['roundTrips']
+    # Remaining purchases which can be made without going over PDT limit of 3 round trips per # days
+    purchases_remaining = 3 - (purchase_counter+round_trips)
+    
+    # Never surpass 3 round trips
+    if purchases_remaining > 0:
+        cash_avail = my_acct['currentBalances']['cashAvailableForTrading']
+
+        # Split cash evenly between the allotted num of purchases for the day
+        investment = cash_avail/purchases_remaining
+        
+        # Market price of the stock
+        cur_price = currentPrice(ticker)['mark']
+
+        # Calculate number of shares to buy
+        quantity = math.floor(investment/cur_price)
+
+        # This status code is used to distinguish between actionable quantities vs simulation quantities
+        status_code = 'REAL'
+        return quantity, cur_price, status_code
+    else:
+        sim_qty = 100
+        sim_price = currentPrice(ticker)['mark']
+        status_code = 'SIM'
+        return sim_qty, sim_price, status_code
