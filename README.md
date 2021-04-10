@@ -34,7 +34,7 @@ The sell-order criteria are still in the works, but might follow some combinatio
 ## Disclaimers
 
 ### 1.
-This code is currently incomplete and does not function as it should.  I've take a bit of a hiatus from this project for the time-being.  I'd say it's about 97.3% complete in regards to infrastructure, but the core trading-logic is at about 67.2%.
+This code is currently incomplete and does not function as it should.  I've take a bit of a hiatus from this project for the time-being.  I'd say it's about 97.3% complete in regards to infrastructure, but the core trading-logic is at about 67.2% (buying procedure is pretty much done, but selling needs to be handled).
 
 ### 2.
 The results of this program are not indicative of any financial prowess and should not be used as professional advice
