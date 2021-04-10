@@ -4,7 +4,7 @@ import urllib
 import requests
 import json
 from splinter import Browser
-from private.config import user, password, client_id, security_question
+from private.config import user, password, client_id, security_question, chromedriver_path
 
 #################################################################################
 #   TO DO:  - implement Refresh Token (decoded_content['refresh_token'])        #
@@ -16,10 +16,11 @@ from private.config import user, password, client_id, security_question
 
 # -------------------- AUTH AUTOMATION --------------------
 # defines location of Chrome Driver
-executable_path = {'executable_path': r'/Users/Quinton/Desktop/Financial/StockBot/resources/chromedriver'}
+executable_path = {'executable_path': chromedriver_path}
 
 # Create instance of browser (iot to watch browser, Headless = False)
 browser = Browser('chrome', **executable_path, headless=False)
+# browser = Browser('chrome', headless=False)
 
 # Components to build URL
 url = 'https://auth.tdameritrade.com/auth?'
@@ -33,8 +34,8 @@ myurl = requests.Request('GET', url, params = payload).prepare().url
 browser.visit(myurl)
 
 # fill out the Log-In form
-browser.find_by_id("username").first.fill(user)
-browser.find_by_id("password").first.fill(password)
+browser.find_by_id("username0").first.fill(user)
+browser.find_by_id("password1").first.fill(password)
 browser.find_by_id("accept").first.click()
 time.sleep(1)
 
@@ -46,22 +47,24 @@ browser.find_by_value("Answer a security question").first.click()
 
 # Answer the Security Questions.
 if browser.is_text_present('What is your maternal grandmother\'s first name?'):
-    browser.find_by_id('secretquestion').first.fill(security_question['abuela'])
+    browser.find_by_id('secretquestion0').first.fill(security_question['abuela'])
 
 elif browser.is_text_present('What is your mother\'s middle name?'):
-    browser.find_by_id('secretquestion').first.fill(security_question['momMiddle'])
+    browser.find_by_id('secretquestion0').first.fill(security_question['momMiddle'])
 
 elif browser.is_text_present('What was your high school mascot?'):
-    browser.find_by_id('secretquestion').first.fill(security_question['hsMascot'])
+    browser.find_by_id('secretquestion0').first.fill(security_question['hsMascot'])
 
 elif browser.is_text_present('What was the name of your junior high school?'):
-    browser.find_by_id('secretquestion').first.fill(security_question['juniorHigh'])
+    browser.find_by_id('secretquestion0').first.fill(security_question['juniorHigh'])
 
 browser.find_by_id("accept").first.click()
 
-# Sleep and Accept Terms
-time.sleep(1)
-browser.find_by_id('accept').first.click()
+# YOU MUST MANUALLY DO THE FOLLOWING - SECURITY REASONS (you have 15 seconds to do so)
+# Trust Device - click Yes and Save only if you truly trust your device
+# TD Ameritrade Authorization - click Allow only if you're willing to risk your finances on a machine
+print('Please navigate to browser and follow prompts')
+time.sleep(15)
 
 # Retreive authorization url
 auth_url = browser.url
@@ -73,7 +76,7 @@ auth_code = urllib.parse.unquote(auth_url.split('code=')[1])
 browser.quit()
 
 # check if auth_code was retrieved
-#print(auth_code)
+print('authorization code: ', auth_code)
 
 
 # AUTHENTICATION ENDPOINT
