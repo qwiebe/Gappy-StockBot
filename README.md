@@ -1,4 +1,4 @@
-# Gappy
+# Gappy - A Stock Trading Bot
 This is a README
 
 Have you read it?
@@ -8,7 +8,7 @@ If you have read this line but not the ones below, please read the lines below.
 If you have read all the lines, thank you!
 
 ## About This Project
-The intent of this project is to explore the potential of **algorithmic trading**.  Written in python, Gappy takes advantage of TD Ameritrade's API in order to make trades on the behalf of the account holder.  The current in-progress algorithm identifies a selection of stock tickers which have gapped-up in the pre-market hours (hence Gappy!).  Then, those tickers are monitored and a buy-order will be sent if the following criteria are fulfilled.
+The intent of this project is to explore the potential of **algorithmic trading**.  Written in python, Gappy takes advantage of TD Ameritrade's API in order to make trades on the behalf of the account holder.  The current in-progress algorithm identifies a selection of stock tickers which have gapped-up in the pre-market hours (hence Gappy!).  Then, those tickers are monitored and a buy-order will be sent if the following criteria are fulfilled.  NOTE: this strategy has been inspired by a range of YouTube videos I watched a long time ago.  If I ever re-find the videos, I'll link them.
 
 ### Buying
 1. The first correction has taken place.  (a stock may gap-up, but at some point there has to be some consolidation where the first-movers dump their early morning quick profits.  After this point, the stock is less volatile; and, if the following conditions are met, it has a higher chance of maintaining an upward trend on which we can capitalize)
@@ -31,13 +31,20 @@ The sell-order criteria are still in the works, but might follow some combinatio
 2. In addition, once the stock crosses a certain profit percentage threshold (defined by the user), sell!  This guarantees that once you've hit your desired percentage gain, you're out!  The intent is to limit "greediness."  However, with proper utilization of the _STOP-LOSS_ method, you could probably guarantee close to the same, and occasionally better, results.
 
 
+## Getting Started
+### Prerequisites
+There are a few libraries which need to be imported:
+* [splinter](https://splinter.readthedocs.io/en/latest/install.html) - creates instance of your desired browser in order to perform authorization
+* [chromedriver](https://chromedriver.chromium.org/getting-started) - if you're using Google Chrome, you'll need this in addition to splinter.  If you're using some other (inferior) browser, check the splinter documentation.  Also, don't forget to keep track of where you keep the driver file, you'll need to store the path in a `config.py` file described below.  I keep the driver file in the same folder as `config.py`.
+* [beautifulsoup4](https://pypi.org/project/beautifulsoup4/) - XML and HTML parser
+
+You will also have to setup a `config.py` file within a folder named `private` (i.e. `private/config.py` within the root directory).  See the `private-example` folder.
+
 ## Disclaimers
 
-### 1.
-This code is currently incomplete and does not function as it should.  I've take a bit of a hiatus from this project for the time-being.  I'd say it's about 97.3% complete in regards to infrastructure, but the core trading-logic is at about 67.2% (buying procedure is pretty much done, but selling needs to be handled).
+#### 1. This code is currently incomplete and does not function as it should.  I've take a bit of a hiatus from this project for the time-being.  I'd say it's about 97.3% complete in regards to infrastructure, but the core trading-logic is at about 67.2% (buying procedure is pretty much done, but selling needs to be handled).
 
-### 2.
-The results of this program are not indicative of any financial prowess and should not be used as professional advice
+#### 2. The results of this program are not indicative of any financial prowess and should not be used as professional advice
 
 
 ## Absolution Clause
