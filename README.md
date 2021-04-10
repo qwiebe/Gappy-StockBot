@@ -16,5 +16,6 @@ This code is currently incomplete and does not function as it should.  I've take
 ### Disclaimer #2:
 the results of this program are not indicative of any financial prowess and should not be used as professional advice
 
-#### Absolution Clause
+
+### Absolution Clause
 I, Quinton Wiebe, the creator of this program absolve myself of all responsibility in the case of lost funds.  In the case of increased funds, I take full responsibility
