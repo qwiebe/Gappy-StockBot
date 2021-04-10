@@ -35,7 +35,7 @@ The sell-order criteria are still in the works, but might follow some combinatio
 ### Prerequisites
 There are a few libraries which need to be imported:
 * [splinter](https://splinter.readthedocs.io/en/latest/install.html) - creates instance of your desired browser in order to perform authorization
-* [chromedriver](https://chromedriver.chromium.org/getting-started) - if you're using Google Chrome, you'll need this in addition to splinter.  If you're using some other (inferior) browser, check the splinter documentation.  Also, don't forget to keep track of where you keep the driver file, you'll need to store the path in a `config.py` file described below.  I keep the driver file in the same folder as `config.py`.
+* [chromedriver](https://chromedriver.chromium.org/getting-started) - This should all ready download with the repository, but here it is if you lose it.  If you're using Google Chrome, you'll need this in addition to splinter.  If you're using some other (inferior) browser, check the splinter documentation.  Also, don't forget to keep track of where you keep the driver file, you'll need to store the path in a `config.py` file described below.  I keep the driver file in `resources`.
 * [beautifulsoup4](https://pypi.org/project/beautifulsoup4/) - XML and HTML parser
 
 You will also have to setup a `config.py` file within a folder named `private` (i.e. `private/config.py` within the root directory).  See the `private-example` folder.
