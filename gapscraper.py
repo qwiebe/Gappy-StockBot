@@ -1,9 +1,8 @@
 import time
 import requests
-from config import user, password
 from bs4 import BeautifulSoup
 from splinter import Browser
-from config import user, password, security_question
+from private.config import user, password, security_question
 
 # ------------------------------ CONSTANTS ------------------------------
 # Access URL

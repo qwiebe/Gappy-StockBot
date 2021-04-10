@@ -4,7 +4,7 @@ import urllib
 import requests
 import json
 from splinter import Browser
-from config import user, password, client_id, security_question
+from private.config import user, password, client_id, security_question
 
 #################################################################################
 #   TO DO:  - implement Refresh Token (decoded_content['refresh_token'])        #

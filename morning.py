@@ -2,7 +2,7 @@
 import requests
 import json
 #from authorization import headers
-from config import client_id
+from private.config import client_id
 
 # list of indicies to look through
 index_dict = {'DJIA': '$DJI',

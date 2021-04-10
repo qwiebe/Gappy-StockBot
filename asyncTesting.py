@@ -1,24 +1,33 @@
 import asyncio
 import concurrent
-import datetime
+from datetime import datetime
+import pytz
 
-from tradingfunctions import candles, currentPrice, placeOrder, qtyPurchase
-from config import account_num
+from tradingfunctions import candles, currentPrice, placeOrder, cancelOrder, qtyPurchase
+from private.config import account_num
 
 ###
 # Considerations: possibly keeping track of the sum of selling volume in order to more accurately consider shorting
 # To Do: Take care of case when no noticable correction occurs
 ###
 
+# Setting time parameters
+pattern = '%Y-%m-%dT%H:%M:%S%z'
+easternTZ = pytz.timezone('US/Eastern')
+
 # Truly Globally Awesome and Constraining (or not) Variables
 purchase_counter = 0        # Note: may have to move this into the main async def and feed it to MakeMove
 
 def waitForCorrection(ticker):
     triggerCandle = {}
-    
-    correctionOccurred = False
 
-    while not(correctionOccurred):
+    while True:
+        # current time and appropriate candles
+        currentTime = datetime.now(easternTZ).strftime(pattern)
+        candleList = candles(ticker = ticker)
+        currentCandle = candleList[0]
+        priorCandle = candleList[1]
+
     # Check for red candle
         if currentCandle['open'] > currentCandle['close']: 
             # check if volume is due to shorting or just profit taking
@@ -47,7 +56,7 @@ async def MakeMove(ticker):
     else:
         while not(move_made):
             # Retrieve current time
-
+            currentTime = datetime.now(easternTZ).strftime(pattern)
 
             # Retrieve candle and price info
             curPrice = currentPrice(ticker)['mark']     # retrieves market price of ticker
@@ -74,25 +83,59 @@ async def MakeMove(ticker):
             # note: this is the critical part. Current price must surpass the high of the trigger candle by at least 1cent 
                 if curPrice > triggerCandle['high'] + 0.01:
                     order_qty, order_price, status_code = await qtyPurchase(account_num, ticker, purchase_counter)
+                    stop_price = triggerCandle['low']
             
-                if status_code == 'REAL':
-                    order_status = await placeOrder(ticker, order_price, order_qty, 'BUY', account_num)
-                    purchase_counter += 1
-                    return order_status
+                    if status_code == 'REAL':
+                        order_status, order_location = await placeOrder(ticker, order_price, order_qty, 'BUY', account_num, stop_price)
+                        purchase_counter += 1
+                        return order_qty, order_status, order_location, stop_price
 
-                #elif status_code == 'SIM':
-                    #simulateOrder(ticker, marketprice, quantity)
+                    #elif status_code == 'SIM':
+                        #simulateOrder(ticker, marketprice, quantity)
 
-async def main():
-    # Locate Gappers
+async def ProfitAssurance(ticker, order_location, stop_price, order_qty):
+    
+    while True:
+        # Check if position has been closed yet
+        
 
+        candleList = candles(ticker = ticker)
+        priorCandle = candleList[1]
+        priorLow = priorCandle['low']
+
+        # Check if prior candle's low is > than the current stop loss price
+        if priorLow > stop_price:
+            placeOrder(ticker, priorLow, order_qty, 'STOP', account_num, -1)
+            cancelOrder(order_location, account_num)
+    
+
+async def trade(ticker):
     # Pass to MakeMove
+    order_qty, order_status, order_location, stop_price = await MakeMove(ticker)
 
-        # For each move made, pass to Profit Assurance
+    # Pass to ProfitAssurance which will change the Stop Loss/Close out the position
+    await ProfitAssurance(ticker, order_location, stop_price, order_qty)
+
+
+
+        # Next, pass to Profit Assurance
     
         # If move not made, pass to DayHighBreak
 
             # if move made, pass to Profit Assurance
+
+async def main():
+    # Locate Gappers
+    gappers = await gappers()
+
+    # Pass to trade()
+    await asyncio.gather(trade(ticker) for ticker in gappers)
+
+
+if __name__ == '__main__':
+    asyncio.run(main)
+
+print(f"{__file__} {__name__}")
 
     
 

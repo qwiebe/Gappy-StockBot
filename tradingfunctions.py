@@ -1,6 +1,6 @@
 import requests
 from authorization import headers, access_token
-from config import account_num
+from private.config import account_num
 from colorRef import colors
 import math
 ############################################################
@@ -44,27 +44,49 @@ def currentPrice(ticker):
 
 # -------------------- PLACING ORDERS --------------------
 # place various types of orders
-def placeOrder(ticker, price, quantity, action, accountId): # action = 'BUY', 'SELL', 'STOP'
+def placeOrder(ticker, price, quantity, action, accountId, stop_price): # action = 'BUY', 'SELL', 'STOP'
     url = r'https://api.tdameritrade.com/v1/accounts/{}/orders'.format(accountId)
-    if action == 'BUY' or action == 'SELL':
+    if action == 'BUY':
         payload = {'orderType': 'LIMIT', # may change this to 'MARKET'
-                   'duration': 'GOOD_TILL_CANCEL',
+                   'duration': 'DAY',
                    'price': price,
                    'session': 'NORMAL',
-                   'orderStrategyType': 'SINGLE',
-                   'orderLegCollection': [{
-                                        'instruction': action,
-                                        'quantity': quantity,
-                                        'instrument': {
-                                                        'assetType': 'EQUITY',
-                                                        'symbol': ticker
-                                                        }
-                                        }]
-                }
-    elif action == 'STOP':
+                   'orderStrategyType': 'TRIGGER',
+                   'orderLegCollection': [
+                                            {
+                                                'instruction': action,
+                                                'quantity': quantity,
+                                                'instrument': {
+                                                                'assetType': 'EQUITY',
+                                                                'symbol': ticker
+                                                                }
+                                            }
+                                        ],
+                    'childOrderStrategies': [
+                        {
+                            "orderType": "STOP",
+                            "session": "NORMAL",
+                            "price": stop_price,
+                            "duration": "DAY",
+                            "orderStrategyType": "SINGLE",
+                            "orderLegCollection": [
+                                {
+                                    "instruction": "SELL",
+                                    "quantity": quantity,
+                                    "instrument": {
+                                        "symbol": ticker,
+                                        "assetType": "EQUITY"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                    }
+        
+    elif action == 'STOP': # This will create a Market Sell order... May want to change to a STOP_LIMIT orderType
         payload = {'session': 'NORMAL',
-                   'duration': 'GOOD_TILL_CANCEL',
-                   'orderType': 'STOP', # may change this to 'MARKET'
+                   'duration': 'DAY',
+                   'orderType': 'STOP',
                    'stopPrice': price,
                    'stopType': 'STANDARD',
                    'orderStrategyType': 'SINGLE',
@@ -76,12 +98,14 @@ def placeOrder(ticker, price, quantity, action, accountId): # action = 'BUY', 'S
                                                         'symbol': ticker
                                                         }
                                         }]
-                   }
+                    }
 
     header = {'Authorization': 'Bearer {}'.format(access_token),
             'Content-Type': 'application/json'}
 
     order = requests.post(url = url, headers = header, json = payload)
+    order_headers = order.headers
+    order_location = order_headers['Location'] # Gotta reCheck this considering the Conditional purchase strategy.  'Location' may not be in the same place now
 
     if order.status_code == 201:
         if action == 'BUY':
@@ -93,7 +117,9 @@ def placeOrder(ticker, price, quantity, action, accountId): # action = 'BUY', 'S
     else:
         print(order.status_code)
         print(order.json())
-    return order.status_code
+    return order.status_code, order_location
+# Test Order: 
+# placeOrder('TQQQ', 2, 1, 'BUY', account_num)
 
 # simulation order... still needs to be finished
 def fakeOrder(ticker, price, quantity, action):
